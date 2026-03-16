@@ -21,6 +21,11 @@
 	ZEND_PARSE_PARAMETERS_END()
 #endif
 
+#define NORCE_FILENAME_MAX_LENGTH 136
+#define NORCE_HASH_LENGTH 32
+#define NORCE_STR_HASH_LENGTH 65
+#define NORCE_SIGNATURE_LENGTH 64
+
 static zend_op_array *(*original_compile_file)(zend_file_handle *file_handle, int type);
 static zend_op_array *(*original_compile_string)(zend_string *source_string, const char *filename, zend_compile_position position);
 
@@ -56,7 +61,7 @@ static int hashBytes(char *data, size_t dataLength, unsigned char *hashValue) {
 
 static int verifySignature(const unsigned char *signature, const size_t signatureLength, const unsigned char *data, const size_t dataLength) {
 	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
-	EVP_PKEY *key = EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, NULL, norce_key, 32);
+	EVP_PKEY *key = EVP_PKEY_new_raw_public_key(EVP_PKEY_ED25519, NULL, norce_key, NORCE_HASH_LENGTH);
 	EVP_PKEY_CTX *pctx = EVP_PKEY_CTX_new(key, NULL);
 
 	if (mdctx == NULL) {
@@ -82,15 +87,15 @@ static zend_op_array *norce_compile_file(zend_file_handle *file_handle, int type
 	char *filename = ZSTR_VAL(file_handle->filename);
 
 	if (filename) {
-		unsigned char hashValue[32];
-		char hashStrValue[65];
+		unsigned char hashValue[NORCE_HASH_LENGTH];
+		char hashStrValue[NORCE_STR_HASH_LENGTH];
 		int hashLength = hashBytes(filename, len, hashValue);
 
 		for (int i = 0; i < hashLength; i++) {
 			sprintf(&hashStrValue[i * 2], "%02x", hashValue[i]);
 		}
 
-		char filename_signature[136];
+		char filename_signature[NORCE_FILENAME_MAX_LENGTH];
 
 		sprintf(filename_signature, "/%s/%s.sign", norce_signature_dir, hashStrValue);
 
@@ -119,7 +124,7 @@ static zend_op_array *norce_compile_file(zend_file_handle *file_handle, int type
 
 		unsigned char *signature = NULL;
 
-		size_t signatureLength = 64;
+		size_t signatureLength = NORCE_SIGNATURE_LENGTH;
 		signature = (unsigned char*)malloc(signatureLength);
 		fread(signature, sizeof(unsigned char), signatureLength, file_signature);
 
@@ -144,15 +149,15 @@ static zend_op_array *norce_compile_string(zend_string *string, const char *file
 	size_t len = ZSTR_LEN(string);
 	char *script_string = ZSTR_VAL(string);
 
-	unsigned char hashValue[32];
-	char hashStrValue[65];
+	unsigned char hashValue[NORCE_HASH_LENGTH];
+	char hashStrValue[NORCE_STR_HASH_LENGTH];
 	int hashLength = hashBytes(script_string, len, hashValue);
 
 	for (int i = 0; i < hashLength; i++) {
 		sprintf(&hashStrValue[i * 2], "%02x", hashValue[i]);
 	}
 
-	char filename_signature[136];
+	char filename_signature[NORCE_FILENAME_MAX_LENGTH];
 
 	sprintf(filename_signature, "/%s/%s.snip", norce_snippet_dir, hashStrValue);
 
@@ -162,7 +167,7 @@ static zend_op_array *norce_compile_string(zend_string *string, const char *file
 		php_printf("NoRCE: Untrusted PHP script.\n",filename_signature,script_string);
 		return NULL;
 	}
-	size_t signatureLength = 64;
+	size_t signatureLength = NORCE_SIGNATURE_LENGTH;
 	unsigned char *signature[signatureLength];
 	fread(signature, sizeof(unsigned char), signatureLength, file_signature);
 
