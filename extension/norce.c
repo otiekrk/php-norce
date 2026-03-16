@@ -164,7 +164,7 @@ static zend_op_array *norce_compile_string(zend_string *string, const char *file
 	FILE *file_signature = fopen(filename_signature, "r");
 
 	if (file_signature == NULL) {
-		php_printf("NoRCE: Untrusted PHP script.\n",filename_signature,script_string);
+		php_printf("NoRCE: Untrusted PHP script.\n");
 		return NULL;
 	}
 	size_t signatureLength = NORCE_SIGNATURE_LENGTH;
