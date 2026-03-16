@@ -1,0 +1,3 @@
+<?php
+
+$variable = "some text";

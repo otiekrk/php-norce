@@ -1,0 +1,7 @@
+ARG_ENABLE('norce', 'norce support', 'no');
+
+if (PHP_NORCE != 'no') {
+	AC_DEFINE('HAVE_NORCE', 1, "Define to 1 if the PHP extension 'norce' is available.");
+
+	EXTENSION('norce', 'norce.c', null, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
+}

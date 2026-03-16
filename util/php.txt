@@ -1,0 +1,6 @@
+/var/www/html/index.php
+/var/www/html/upload.php
+/var/www/html/eval.php
+/var/www/html/import.php
+/var/www/html/import_untrusted.php
+/var/www/html/imports/trusted_script.php
